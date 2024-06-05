@@ -1,4 +1,3 @@
-// src/ProductList.tsx
 import React, { useState, useEffect } from "react";
 import axios from "axios";
 
@@ -15,28 +14,18 @@ const ProductList: React.FC = () => {
     title: "",
     description: "",
   });
-
+  const [isFieldEmpty, setIsFieldEmpty] = useState(false);
   const [editProduct, setEditProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetchProducts();
   }, []);
 
-  // const fetchProducts = async () => {
-  //   try {
-  //     const response = await axios.get<Product[]>("/api/products");
-  //     console.log("Response data:", response.data);
-  //     setProducts(response.data);
-  //   } catch (error) {
-  //     console.error("Error fetching products:", error);
-  //   }
-  // };
   const fetchProducts = async () => {
     try {
       const response = await axios.get<Product[]>(
         "http://localhost:5000/api/products"
       );
-      console.log("Response data:", response.data);
       setProducts(response.data);
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -49,17 +38,23 @@ const ProductList: React.FC = () => {
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    // Check if fields are empty
+    if (!newProduct.title || !newProduct.description) {
+      setIsFieldEmpty(true);
+      return;
+    }
     try {
       const response = await axios.post<Product>(
         "http://localhost:5000/api/products",
         newProduct
       );
-      setProducts([...products, response.data]);
       setNewProduct({ id: 0, title: "", description: "" });
+      setProducts([...products, response.data]);
     } catch (error) {
       console.error("Error creating product:", error);
     }
   };
+
   const handleEdit = (product: Product) => {
     setEditProduct(product);
     setNewProduct(product);
@@ -67,6 +62,7 @@ const ProductList: React.FC = () => {
 
   const handleUpdate = async () => {
     if (!editProduct) return;
+
     try {
       const response = await axios.put<Product>(
         `http://localhost:5000/api/products/${editProduct.id}`,
@@ -87,63 +83,93 @@ const ProductList: React.FC = () => {
       return;
     try {
       await axios.delete(`http://localhost:5000/api/products/${id}`);
-      setProducts(products.filter((p) => p.id !== id));
+      setProducts((prevProducts) => prevProducts.filter((p) => p.id !== id));
     } catch (error) {
       console.error("Error deleting product:", error);
     }
   };
 
   return (
-    <div>
-      <h1>Product List</h1>
-      <ul>
+    <div className="container">
+      <h1 className="my-5">Product List</h1>
+      <ul className="list-group">
         {products.map((product) => (
-          <li key={product.id}>
+          <li className="list-group-item" key={product.id}>
             {editProduct === product ? (
               <form onSubmit={handleUpdate}>
-                <input
-                  type="text"
-                  placeholder="Title"
-                  name="title"
-                  value={newProduct.title}
-                  onChange={handleInputChange}
-                />
-                <input
-                  type="text"
-                  placeholder="Description"
-                  name="description"
-                  value={newProduct.description}
-                  onChange={handleInputChange}
-                />
-                <button type="submit">Update Product</button>
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Title"
+                    name="title"
+                    value={newProduct.title}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <div className="mb-3">
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="Description"
+                    name="description"
+                    value={newProduct.description}
+                    onChange={handleInputChange}
+                  />
+                </div>
+                <button type="submit" className="btn btn-primary">
+                  Update Product
+                </button>
               </form>
             ) : (
               <>
                 <h3>{product.title}</h3>
                 <p>{product.description}</p>
-                <button onClick={() => handleEdit(product)}>Edit</button>
-                <button onClick={() => handleDelete(product.id)}>Delete</button>
+                <button
+                  className="btn btn-secondary me-2"
+                  onClick={() => handleEdit(product)}
+                >
+                  Edit
+                </button>
+                <button
+                  className="btn btn-danger"
+                  onClick={() => handleDelete(product.id)}
+                >
+                  Delete
+                </button>
               </>
             )}
           </li>
         ))}
       </ul>
       <form onSubmit={handleSubmit}>
-        <input
-          type="text"
-          placeholder="Title"
-          name="title"
-          value={newProduct.title}
-          onChange={handleInputChange}
-        />
-        <input
-          type="text"
-          placeholder="Description"
-          name="description"
-          value={newProduct.description}
-          onChange={handleInputChange}
-        />
-        <button type="submit">Add Product</button>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Title"
+            name="title"
+            value={newProduct.title}
+            onChange={handleInputChange}
+          />
+        </div>
+        <div className="mb-3">
+          <input
+            type="text"
+            className="form-control"
+            placeholder="Description"
+            name="description"
+            value={newProduct.description}
+            onChange={handleInputChange}
+          />
+        </div>
+        {/* Display error message */}
+        {isFieldEmpty && (
+          <p className="text-danger">Both fields are required.</p>
+        )}
+        <button type="submit" className="btn btn-success">
+          Add Product
+        </button>
       </form>
     </div>
   );

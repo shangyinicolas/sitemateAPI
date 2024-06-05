@@ -12,12 +12,12 @@ app.use(cors());
 
 // Dummy product data
 let products = [{
-        id: 1,
+        id: "1",
         title: "Product 1",
         description: "Description of product 1"
     },
     {
-        id: 2,
+        id: "2",
         title: "Product 2",
         description: "Description of product 2"
     }
@@ -28,21 +28,27 @@ app.get('/api/products', (req, res) => {
     res.json(products);
 });
 
+const {
+    v4: uuidv4
+} = require('uuid');
+
 app.post('/api/products', (req, res) => {
     const newProduct = req.body;
+    newProduct.id = uuidv4();
+
     products.push(newProduct);
     res.json(newProduct);
 });
 
 app.put('/api/products/:id', (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const updatedProduct = req.body;
     products = products.map(product => (product.id === id ? updatedProduct : product));
     res.json(updatedProduct);
 });
 
 app.delete('/api/products/:id', (req, res) => {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     products = products.filter(product => product.id !== id);
     res.send(`Product ${id} deleted.`);
 });
